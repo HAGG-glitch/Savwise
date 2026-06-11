@@ -1,0 +1,5 @@
+id,description,amount,type,category,date,createdAt
+bad-row-1,, -100,expense,,2026-06-01,2026-06-01T08:00:00Z
+bad-row-2,Food,abc,expense,Food,2026-06-02,2026-06-02T08:00:00Z
+bad-row-3,Test,500,unknown,Test,2026-06-03,2026-06-03T08:00:00Z
+bad-row-4,Test,100,expense,Test,bad-date,2026-06-04T08:00:00Z

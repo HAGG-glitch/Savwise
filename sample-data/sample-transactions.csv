@@ -1,0 +1,6 @@
+id,description,amount,type,category,date,createdAt
+tx-001,Monthly allowance,1200,income,Income,2026-06-01,2026-06-01T08:00:00Z
+tx-002,Food,400,expense,Food,2026-06-02,2026-06-02T08:00:00Z
+tx-003,Education,300,expense,Education,2026-06-03,2026-06-03T08:00:00Z
+tx-004,Transport,200,expense,Transport,2026-06-04,2026-06-04T08:00:00Z
+tx-005,Airtime/Data,180,expense,Airtime/Data,2026-06-05,2026-06-05T08:00:00Z

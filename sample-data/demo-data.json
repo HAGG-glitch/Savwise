@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "1.0",
+  "exportedAt": "2026-06-09T10:00:00Z",
+  "user": {
+    "fullName": "Fatmata Kamara",
+    "email": "demo@savwise.local",
+    "preferredLanguage": "English",
+    "monthlyIncome": 1200,
+    "currentSavings": 450,
+    "emergencyTarget": 1500,
+    "consentAccepted": true
+  },
+  "transactions": [
+    {
+      "id": "tx-001",
+      "description": "Monthly allowance",
+      "amount": 1200,
+      "type": "income",
+      "category": "Income",
+      "date": "2026-06-01",
+      "createdAt": "2026-06-01T08:00:00Z"
+    },
+    {
+      "id": "tx-002",
+      "description": "Food",
+      "amount": 400,
+      "type": "expense",
+      "category": "Food",
+      "date": "2026-06-02",
+      "createdAt": "2026-06-02T08:00:00Z"
+    },
+    {
+      "id": "tx-003",
+      "description": "Education",
+      "amount": 300,
+      "type": "expense",
+      "category": "Education",
+      "date": "2026-06-03",
+      "createdAt": "2026-06-03T08:00:00Z"
+    },
+    {
+      "id": "tx-004",
+      "description": "Transport",
+      "amount": 200,
+      "type": "expense",
+      "category": "Transport",
+      "date": "2026-06-04",
+      "createdAt": "2026-06-04T08:00:00Z"
+    },
+    {
+      "id": "tx-005",
+      "description": "Airtime/Data",
+      "amount": 180,
+      "type": "expense",
+      "category": "Airtime/Data",
+      "date": "2026-06-05",
+      "createdAt": "2026-06-05T08:00:00Z"
+    }
+  ],
+  "goals": [
+    {
+      "id": "goal-001",
+      "name": "Emergency Fund",
+      "targetAmount": 1500,
+      "currentAmount": 450,
+      "monthlyContribution": 200,
+      "createdAt": "2026-06-09T10:00:00Z"
+    },
+    {
+      "id": "goal-002",
+      "name": "Textbook Fund",
+      "targetAmount": 1000,
+      "currentAmount": 680,
+      "monthlyContribution": 160,
+      "createdAt": "2026-06-09T10:00:00Z"
+    }
+  ]
+}
