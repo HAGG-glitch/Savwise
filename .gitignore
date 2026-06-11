@@ -1,5 +1,7 @@
 .env
+.gitignore
 *.log
 tmp/
 dist/
 vendor/
+Summary.md
