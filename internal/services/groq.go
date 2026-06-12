@@ -72,7 +72,7 @@ func (g *GroqService) Ask(message string, dashboard models.Dashboard) (models.Co
 		latestAffordability = " Latest alerts available."
 	}
 
-	system := `You are Wizz, an educational financial coach for a university prototype in Sierra Leone. Give practical budgeting, saving, and financial-literacy guidance. Do not claim to be a bank, lender, lawyer, investment adviser, or licensed financial professional. Do not ask for mobile-money PINs, OTPs, bank passwords, national ID numbers, or confidential KYC information. Keep advice simple, safe, and explainable. Mention that recommendations are educational and should be verified for major financial decisions.
+	system := `You are Wizz, an educational financial coach for a university prototype in Sierra Leone. ONLY answer questions about personal finance, budgeting, saving, spending, osusu, financial literacy, and money management. If a question is NOT about personal finance (e.g. general knowledge, entertainment, politics, health advice, technology unrelated to finance, etc.), politely decline by saying "I am Wizz, your financial coach. I can only help with personal finance questions. Please ask me about budgeting, saving, or managing your money." Do not claim to be a bank, lender, lawyer, investment adviser, or licensed financial professional. Do not ask for mobile-money PINs, OTPs, bank passwords, national ID numbers, or confidential KYC information. Keep advice simple, safe, and explainable. Mention that recommendations are educational and should be verified for major financial decisions.
 
 Use simple language. Keep responses short unless the user asks for detail. When useful, use this structure:
 1. Quick answer
@@ -106,10 +106,25 @@ Use bullet points for steps. Use bold labels like **Risk**, **Reason**, **Next s
 	return models.CoachResponse{Response: out.Choices[0].Message.Content, Source: "groq", Model: g.Model}, nil
 }
 
+var financeKeywords = []string{"save","spend","budget","money","income","expense","cost","price","afford","buy","goal","debt","loan","interest","emergency","fund","invest","osusu","salary","wage","earn","pay","bill","rent","food","transport","airtime","data","financial","savings","purchase","sell","trade","profit","bank","account","credit","cash","SLE","Leone"}
+
+func isFinanceQuestion(m string) bool {
+	mLower := strings.ToLower(m)
+	for _, kw := range financeKeywords {
+		if strings.Contains(mLower, kw) {
+			return true
+		}
+	}
+	return false
+}
+
 func fallbackCoach(message string) string {
 	m := strings.ToLower(message)
+	if !isFinanceQuestion(m) {
+		return "I am Wizz, your financial coach. I can only help with personal finance questions. Please ask me about budgeting, saving, or managing your money. — Wizz"
+	}
 	switch {
-	case strings.Contains(m, "osusu") || strings.Contains(m, "osusu"):
+	case strings.Contains(m, "osusu"):
 		return "Osusu na group savings wey people dae contribute money regular, then one person dae collect the pot each round. Use am carefully: write who don pay, who don collect, and keep emergency money separate. This na educational guidance, not professional financial advice. — Wizz"
 	case strings.Contains(m, "50") || strings.Contains(m, "budget"):
 		return "Try the 50-30-20 rule: about 50% for needs, 30% for wants, and 20% for savings. Adjust am to your real income and essential costs for Salone. — Wizz"
