@@ -62,7 +62,7 @@ func limitBody(next http.Handler) http.Handler {
 func registerPages(mux *http.ServeMux) {
 	webDir := "web"
 	fileServer := http.FileServer(http.Dir(webDir))
-	mux.Handle("/assets/", http.StripPrefix("/assets/", fileServer))
+	mux.Handle("/assets/", http.StripPrefix("/", fileServer))
 	mux.Handle("/css/", http.StripPrefix("/", fileServer))
 	mux.Handle("/js/", http.StripPrefix("/", fileServer))
 

@@ -1,27 +1,38 @@
 async function loadDashboard() {
   const res = await api('/api/dashboard');
   const d = res.data;
+  renderGreeting(d);
+  renderMainSummary(d);
   renderDashboardCards(d);
   renderBreakdown(d.spendingBreakdown || []);
   renderAlerts(d.alerts || []);
   renderGoalOverview(d.goals || []);
   return d;
 }
+function renderGreeting(d) {
+  var el = document.getElementById('greeting');
+  if (!el) return;
+  var hour = new Date().getHours();
+  var timeGreeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  el.textContent = timeGreeting + (d.user.fullName ? ', ' + d.user.fullName : '') + '.';
+  var dateEl = document.getElementById('currentDateDisplay');
+  if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+function renderMainSummary(d) {
+  var el = document.getElementById('mainSummaryCard');
+  if (!el) return;
+  var nextAction = (d.alerts || []).length > 0 ? d.alerts[0].recommendedAction : 'Set up your profile and add transactions.';
+  el.innerHTML = '<div class="grid md:grid-cols-4 gap-4"><div><p class="text-xs uppercase tracking-wide text-slate-500 font-bold">What came in</p><h3 class="text-2xl font-black mt-1 text-emerald-700">' + money(d.totalIncome) + '</h3></div><div><p class="text-xs uppercase tracking-wide text-slate-500 font-bold">What went out</p><h3 class="text-2xl font-black mt-1 text-red-600">' + money(d.totalExpenses) + '</h3></div><div><p class="text-xs uppercase tracking-wide text-slate-500 font-bold">What is left</p><h3 class="text-2xl font-black mt-1 ' + (d.monthlySurplus >= 0 ? 'text-emerald-700' : 'text-red-600') + '">' + money(d.monthlySurplus) + '</h3></div><div><p class="text-xs uppercase tracking-wide text-slate-500 font-bold">Next step</p><p class="text-sm font-bold mt-1">' + nextAction + '</p></div></div>';
+}
 function renderDashboardCards(d) {
-  const topAlert = (d.alerts || []).length > 0 ? d.alerts[0].title : 'None';
-  const nextAction = (d.alerts || []).length > 0 ? d.alerts[0].recommendedAction : 'Set up your profile and add transactions.';
-
+  var topAlert = (d.alerts || []).length > 0 ? d.alerts[0].title : 'None';
   var dc = document.getElementById('dashboardCards');
   if (!dc) return;
   dc.innerHTML = [
-    '<div class="card p-5"><p class="text-xs uppercase tracking-wide text-slate-500 font-bold">Income</p><h3 class="text-2xl font-black mt-2 text-emerald-700">' + money(d.totalIncome) + '</h3><p class="text-xs text-slate-500 mt-2">Total income this period</p></div>',
-    '<div class="card p-5"><p class="text-xs uppercase tracking-wide text-slate-500 font-bold">Expenses</p><h3 class="text-2xl font-black mt-2 text-red-600">' + money(d.totalExpenses) + '</h3><p class="text-xs text-slate-500 mt-2">Total expenses this period</p></div>',
-    '<div class="card p-5"><p class="text-xs uppercase tracking-wide text-slate-500 font-bold">Balance / Surplus</p><h3 class="text-2xl font-black mt-2 ' + (d.monthlySurplus >= 0 ? 'text-emerald-700' : 'text-red-600') + '">' + money(d.monthlySurplus) + '</h3><p class="text-xs text-slate-500 mt-2">Income minus expenses</p></div>',
-    '<div class="glass-dashboard-card"><p class="text-xs uppercase tracking-wide text-slate-500 font-bold">Financial Health Score</p><h3 class="text-2xl font-black mt-2 text-emerald-700">' + d.score.total + '/100</h3><p class="text-xs text-slate-500 mt-2">Savings ' + d.score.savingsHabit + '/30 · Budget ' + d.score.budgetControl + '/30 · Emergency ' + d.score.emergencyFund + '/20 · Goals ' + d.score.goalProgress + '/20</p></div>',
-    '<div class="glass-dashboard-card"><p class="text-xs uppercase tracking-wide text-slate-500 font-bold">Emergency Safety</p><h3 class="text-2xl font-black mt-2 text-emerald-700">' + Number(d.emergencyCoverageDays || 0).toFixed(0) + ' days</h3><p class="text-xs text-slate-500 mt-2">Emergency safety: How many days your savings can support you.</p></div>',
-    '<div class="card p-5"><p class="text-xs uppercase tracking-wide text-slate-500 font-bold">Top Risk Alert</p><h3 class="text-lg font-black mt-2 ' + (topAlert !== 'None' && topAlert !== 'No major risk detected' ? 'text-red-600' : 'text-emerald-700') + '">' + topAlert + '</h3><p class="text-xs text-slate-500 mt-2">Highest priority alert</p></div>',
-    '<div class="card p-5"><p class="text-xs uppercase tracking-wide text-slate-500 font-bold">Savings rate</p><h3 class="text-2xl font-black mt-2 text-emerald-700">' + pct(d.savingsRate) + '</h3><p class="text-xs text-slate-500 mt-2">Savings rate: Surplus divided by income</p></div>',
-    '<div class="glass-dashboard-card"><p class="text-xs uppercase tracking-wide text-slate-500 font-bold">Next Best Action</p><h3 class="text-sm font-bold mt-2 text-slate-800">' + nextAction + '</h3><p class="text-xs text-slate-500 mt-2">Recommended next step</p></div>',
+    '<div class="glass-dashboard-card"><p class="text-xs uppercase tracking-wide text-slate-500 font-bold">Financial Health</p><h3 class="text-2xl font-black mt-2 text-emerald-700">' + d.score.total + '/100</h3><div class="flex gap-2 mt-2 text-xs text-slate-500"><span>Save ' + d.score.savingsHabit + '/30</span><span>Budget ' + d.score.budgetControl + '/30</span><span>Emergency ' + d.score.emergencyFund + '/20</span><span>Goals ' + d.score.goalProgress + '/20</span></div></div>',
+    '<div class="glass-dashboard-card"><p class="text-xs uppercase tracking-wide text-slate-500 font-bold">Emergency Safety</p><h3 class="text-2xl font-black mt-2 text-emerald-700">' + Number(d.emergencyCoverageDays || 0).toFixed(0) + ' days</h3><p class="text-xs text-slate-500 mt-2">Savings can cover this many days of expenses</p></div>',
+    '<div class="card p-5"><p class="text-xs uppercase tracking-wide text-slate-500 font-bold">Savings rate</p><h3 class="text-2xl font-black mt-2 text-emerald-700">' + pct(d.savingsRate) + '</h3><p class="text-xs text-slate-500 mt-2">Surplus as percent of income</p></div>',
+    '<div class="card p-5"><p class="text-xs uppercase tracking-wide text-slate-500 font-bold">Top alert</p><h3 class="text-sm font-black mt-2 ' + (topAlert !== 'None' && topAlert !== 'No major risk detected' ? 'text-red-600' : 'text-emerald-700') + '">' + topAlert + '</h3></div>',
   ].join('');
 }
 function renderBreakdown(rows) {

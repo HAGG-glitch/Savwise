@@ -13,7 +13,6 @@ function safeFormatWizz(text) {
     var line = lines[i].trim();
     if (line === '') {
       if (inList) { out.push('</ul>'); inList = false; }
-      out.push('<p class="mb-2"></p>');
       continue;
     }
     var bulletMatch = line.match(/^[-*]\s+(.+)/);
@@ -34,50 +33,75 @@ function safeFormatWizz(text) {
   if (inList) out.push('</ul>');
   return out.join('\n');
 }
-function appendChat(role, text, isHtml) {
+function appendUserChat(text) {
   var log = document.getElementById('chatLog');
   if (!log) return;
+  var wrapper = document.createElement('div');
+  wrapper.className = 'flex justify-end';
   var div = document.createElement('div');
-  if (role === 'user') {
-    div.className = 'ml-auto max-w-[80%] bg-emerald-600 text-white p-3 rounded-xl';
-    div.textContent = text;
+  div.className = 'max-w-[80%] bg-emerald-600 text-white p-3 rounded-2xl rounded-br-sm text-sm';
+  div.textContent = text;
+  wrapper.appendChild(div);
+  log.appendChild(wrapper);
+  log.scrollTop = log.scrollHeight;
+}
+function appendWizzChat(text, isHtml) {
+  var log = document.getElementById('chatLog');
+  if (!log) return;
+  var wrapper = document.createElement('div');
+  wrapper.className = 'flex items-start gap-2';
+  var avatar = document.createElement('div');
+  avatar.className = 'wizz-avatar text-xs flex-shrink-0';
+  avatar.textContent = 'W';
+  wrapper.appendChild(avatar);
+  var bubble = document.createElement('div');
+  bubble.className = 'bg-white border rounded-2xl rounded-tl-sm p-3 text-sm max-w-[85%]';
+  if (isHtml) {
+    bubble.innerHTML = text;
   } else {
-    div.className = 'max-w-[85%] bg-white border p-3 rounded-xl';
-    if (isHtml) {
-      div.innerHTML = text;
-    } else {
-      div.textContent = text;
-    }
+    bubble.textContent = text;
   }
-  log.appendChild(div);
+  wrapper.appendChild(bubble);
+  log.appendChild(wrapper);
   log.scrollTop = log.scrollHeight;
 }
 function showTyping() {
   var log = document.getElementById('chatLog');
   if (!log) return;
+  var wrapper = document.createElement('div');
+  wrapper.id = 'typingIndicator';
+  wrapper.className = 'flex items-start gap-2';
+  var avatar = document.createElement('div');
+  avatar.className = 'wizz-avatar text-xs flex-shrink-0';
+  avatar.textContent = 'W';
+  wrapper.appendChild(avatar);
   var div = document.createElement('div');
-  div.id = 'typingIndicator';
-  div.className = 'max-w-[85%] bg-white border p-3 rounded-xl text-slate-400 text-sm';
-  div.textContent = 'Wizz is thinking...';
-  log.appendChild(div);
+  div.className = 'bg-white border rounded-2xl rounded-tl-sm p-3 text-sm text-slate-400';
+  div.innerHTML = '<span class="loading-spinner"></span> Wizz is thinking...';
+  wrapper.appendChild(div);
+  log.appendChild(wrapper);
   log.scrollTop = log.scrollHeight;
 }
 function removeTyping() {
   var el = document.getElementById('typingIndicator');
   if (el) el.remove();
 }
+function getTimestamp() {
+  var d = new Date();
+  return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+}
 async function askCoach(message) {
-  appendChat('user', message);
+  appendUserChat(message);
   showTyping();
   try {
     var res = await api('/api/coach', { method: 'POST', body: JSON.stringify({ message: message }) });
     removeTyping();
     var formatted = safeFormatWizz(res.data.response);
-    var sourceNote = '<p class="text-xs text-slate-400 mt-2">' + escapeHtml(res.data.source) + ' · Educational guidance only</p>';
-    appendChat('ai', formatted + sourceNote, true);
+    var meta = '<p class="text-xs text-slate-400 mt-2">' + escapeHtml(getTimestamp()) + ' &middot; ' + escapeHtml(res.data.source) + ' &middot; Educational guidance only</p>';
+    appendWizzChat(formatted + meta, true);
   } catch (err) {
     removeTyping();
-    appendChat('ai', 'Sorry, Wizz encountered an error: ' + escapeHtml(err.message), false);
+    appendWizzChat('Sorry, Wizz encountered an error: ' + escapeHtml(err.message), false);
   }
 }
 function bindCoach() {
@@ -96,5 +120,5 @@ function bindCoach() {
   document.querySelectorAll('.coach-chip').forEach(function(btn) {
     btn.addEventListener('click', function() { askCoach(btn.dataset.q); });
   });
-  appendChat('ai', 'Kushe! I am Wizz. I give educational budgeting and savings guidance based on your data. Do not share PINs, OTPs, or passwords.', false);
+  appendWizzChat('<p class="font-bold">Kushe! I am Wizz.</p><p class="mt-1">I give educational budgeting and savings guidance based on your data.</p><p class="text-xs text-slate-400 mt-2">Do not share PINs, OTPs, or passwords. Educational guidance only.</p>', true);
 }

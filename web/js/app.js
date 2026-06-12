@@ -134,6 +134,8 @@ function showApp() {
   applyTheme();
 }
 function bindTabs() {
+  if (document.body.dataset.tabsBound === 'true') return;
+  document.body.dataset.tabsBound = 'true';
   document.querySelectorAll('.tab-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
       document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });

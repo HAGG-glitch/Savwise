@@ -187,13 +187,10 @@ func weeklyReport(income, expenses, surplus float64, biggest string) string {
 	return "Income: SLE " + money(income) + "; Spent: SLE " + money(expenses) + "; Saved/surplus: SLE " + money(surplus) + "; Biggest expense: " + biggest + "."
 }
 
-func CalculateAffordability(user models.User, transactions []models.Transaction, itemName string, itemPrice float64) models.AffordabilityResult {
-	var monthlyExpenses float64
-	for _, tx := range transactions {
-		if tx.Type == "expense" {
-			monthlyExpenses += tx.Amount
-		}
-	}
+func CalculateAffordability(user models.User, transactions []models.Transaction, goals []models.Goal, itemName string, itemPrice float64, targetDate string) models.AffordabilityResult {
+	now := time.Now()
+	calculatedAt := now.Format("2 January 2006, 15:04")
+
 	income := user.MonthlyIncome
 	if income <= 0 {
 		for _, tx := range transactions {
@@ -202,11 +199,56 @@ func CalculateAffordability(user models.User, transactions []models.Transaction,
 			}
 		}
 	}
+
+	monthlyExpenses, expensePeriod := calculateMonthlyExpenses(transactions, now)
 	surplus := income - monthlyExpenses
-	remainingSavings := user.CurrentSavings - itemPrice
+
+	emergencyTarget := user.EmergencyTarget
+	if emergencyTarget <= 0 {
+		emergencyTarget = 1500
+	}
+
+	fundingGap := math.Max(0, itemPrice-user.CurrentSavings)
+
+	monthsUntilTarget := 0
+	var targetDateParsed time.Time
+	var err error
+	hasTarget := false
+	if targetDate != "" {
+		targetDateParsed, err = time.Parse("2006-01-02", targetDate)
+		if err == nil {
+			hasTarget = true
+			targetDateParsed = targetDateParsed.Truncate(24 * time.Hour)
+			today := now.Truncate(24 * time.Hour)
+			if targetDateParsed.After(today) {
+				diffMonths := int(targetDateParsed.Sub(today).Hours() / 24 / 30)
+				if diffMonths < 1 {
+					diffMonths = 1
+				}
+				monthsUntilTarget = diffMonths
+			} else {
+				monthsUntilTarget = 1
+			}
+		}
+	}
+
+	requiredMonthlySaving := 0.0
+	if monthsUntilTarget > 0 {
+		requiredMonthlySaving = fundingGap / float64(monthsUntilTarget)
+	}
+
+	goalCommitments := 0.0
+	for _, g := range goals {
+		if g.MonthlyContribution > 0 {
+			goalCommitments += g.MonthlyContribution
+		}
+	}
+	availableAfterGoals := surplus - goalCommitments
+
 	reasons := []string{}
 	riskScore := 0
 	impactGoals := false
+	remainingSavings := user.CurrentSavings - itemPrice
 
 	if itemPrice > user.CurrentSavings {
 		riskScore += 3
@@ -236,50 +278,124 @@ func CalculateAffordability(user models.User, transactions []models.Transaction,
 		riskScore += 1
 		reasons = append(reasons, "This purchase would use more than half of your savings.")
 	}
-	if user.EmergencyTarget > 0 && remainingSavings < user.EmergencyTarget {
+	if emergencyTarget > 0 && remainingSavings < emergencyTarget {
 		riskScore += 2
 		impactGoals = true
 		reasons = append(reasons, "This purchase would leave your emergency fund below target.")
 	}
+	if hasTarget && requiredMonthlySaving > 0 && requiredMonthlySaving > availableAfterGoals {
+		riskScore += 3
+		reasons = append(reasons, "The amount you need to save each month by the target date is more than your available surplus after goals.")
+	}
+	if hasTarget && availableAfterGoals <= 0 {
+		riskScore += 3
+		reasons = append(reasons, "You have no monthly surplus available after paying for expenses and savings goals.")
+	}
 
 	risk := "Low"
-	var wait *int
-
-	if surplus > 0 && itemPrice > user.CurrentSavings {
-		months := int(math.Ceil((itemPrice - user.CurrentSavings) / surplus))
-		if months < 1 {
-			months = 1
-		}
-		wait = &months
-	}
 
 	if riskScore >= 6 {
 		risk = "High"
-		if wait != nil {
-			recommendation := "High risk. This item costs more than your available savings. If you buy it now, your emergency fund will be too low. Wait about " + intString(*wait) + " months and save first."
-			if impactGoals {
-				recommendation += " This purchase may also affect your savings goals progress."
-			}
-			return models.AffordabilityResult{RiskLevel: risk, Reasons: reasons, Recommendation: recommendation, EstimatedWaitMonths: wait, Explanation: "Calculated using your income, expenses, savings, monthly surplus, emergency coverage, and goals."}
-		}
-		recommendation := "High risk. Do not buy this now. Build emergency savings first and reduce expenses before making this purchase."
-		if surplus <= 0 {
-			recommendation = "High risk. Your monthly surplus is zero or negative. Reduce expenses before considering this purchase."
-		}
-		return models.AffordabilityResult{RiskLevel: risk, Reasons: reasons, Recommendation: recommendation, EstimatedWaitMonths: wait, Explanation: "Calculated using your income, expenses, savings, monthly surplus, emergency coverage, and goals."}
 	} else if riskScore >= 2 {
 		risk = "Medium"
-		recommendation := "Medium risk. This purchase needs caution. Save more first or reduce the price so your emergency savings stay protected."
-		if wait != nil {
-			recommendation = "Medium risk. Consider waiting about " + intString(*wait) + " months to save enough without affecting your emergency fund."
-		}
-		if impactGoals {
-			recommendation += " This purchase may also affect your savings goals progress."
-		}
-		return models.AffordabilityResult{RiskLevel: risk, Reasons: reasons, Recommendation: recommendation, EstimatedWaitMonths: wait, Explanation: "Calculated using your income, expenses, savings, monthly surplus, emergency coverage, and goals."}
 	}
 
-	return models.AffordabilityResult{RiskLevel: risk, Reasons: reasons, Recommendation: "Low risk. You can likely afford this item without borrowing, and your emergency savings stay safe.", EstimatedWaitMonths: wait, Explanation: "Calculated using your income, expenses, savings, monthly surplus, emergency coverage, and goals."}
+	recommendation := buildRecommendation(risk, riskScore, itemPrice, user.CurrentSavings, surplus, fundingGap, monthsUntilTarget, requiredMonthlySaving, availableAfterGoals, hasTarget, impactGoals)
+
+	explanation := "Calculated using your income, expenses, savings, monthly surplus, emergency coverage, active goals, and target date."
+
+	return models.AffordabilityResult{
+		ItemName:              itemName,
+		ItemPrice:             round(itemPrice),
+		TargetDate:            targetDate,
+		CalculatedAt:          calculatedAt,
+		MonthlyIncome:         round(income),
+		MonthlyExpenses:       round(monthlyExpenses),
+		MonthlySurplus:        round(surplus),
+		ExpensePeriod:         expensePeriod,
+		CurrentSavings:        round(user.CurrentSavings),
+		EmergencyTarget:       round(emergencyTarget),
+		FundingGap:            round(fundingGap),
+		MonthsUntilTarget:     monthsUntilTarget,
+		RequiredMonthlySaving: round(requiredMonthlySaving),
+		ActiveGoalCommitments: round(goalCommitments),
+		AvailableAfterGoals:   round(availableAfterGoals),
+		RiskLevel:             risk,
+		Reasons:               reasons,
+		Recommendation:        recommendation,
+		Explanation:           explanation,
+	}
+}
+
+func calculateMonthlyExpenses(transactions []models.Transaction, now time.Time) (float64, string) {
+	thirtyDaysAgo := now.AddDate(0, 0, -30)
+	var total float64
+	var count int
+	for _, tx := range transactions {
+		if tx.Type == "expense" {
+			txDate, err := time.Parse("2006-01-02", tx.Date)
+			if err == nil && (txDate.Equal(thirtyDaysAgo) || txDate.After(thirtyDaysAgo)) {
+				total += tx.Amount
+				count++
+			}
+		}
+	}
+	if count > 0 {
+		return total, "Latest 30 days"
+	}
+	for _, tx := range transactions {
+		if tx.Type == "expense" {
+			total += tx.Amount
+			count++
+		}
+	}
+	if count > 0 {
+		return total, "All available transactions"
+	}
+	return 0, "No transactions found"
+}
+
+func buildRecommendation(risk string, riskScore int, itemPrice, currentSavings, surplus, fundingGap float64, monthsUntilTarget int, requiredMonthlySaving, availableAfterGoals float64, hasTarget, impactGoals bool) string {
+	switch risk {
+	case "High":
+		if hasTarget && requiredMonthlySaving > availableAfterGoals {
+			r := "High risk. You need SLE " + money(requiredMonthlySaving) + " per month to reach this price by the target date, but you only have SLE " + money(availableAfterGoals) + " available after expenses and goals."
+			if surplus <= 0 {
+				r = "High risk. Your monthly surplus is zero or negative. Reduce expenses before considering this purchase."
+			}
+			if impactGoals {
+				r += " This purchase may also affect your savings goals progress."
+			}
+			return r
+		}
+		if surplus > 0 && itemPrice > currentSavings {
+			r := "High risk. This item costs more than your available savings. If you buy it now, your emergency fund will be too low."
+			if impactGoals {
+				r += " This purchase may also affect your savings goals progress."
+			}
+			return r
+		}
+		r := "High risk. Do not buy this now. Build emergency savings first and reduce expenses before making this purchase."
+		if surplus <= 0 {
+			r = "High risk. Your monthly surplus is zero or negative. Reduce expenses before considering this purchase."
+		}
+		return r
+	case "Medium":
+		r := "Medium risk. This purchase needs caution. Save more first or reduce the price so your emergency savings stay protected."
+		if hasTarget && monthsUntilTarget > 0 {
+			r = "Medium risk. To buy by the target date, save about SLE " + money(requiredMonthlySaving) + " per month. This is a significant part of your SLE " + money(availableAfterGoals) + " monthly surplus."
+		}
+		if impactGoals {
+			r += " This purchase may also affect your savings goals progress."
+		}
+		return r
+	default:
+		r := "Low risk. You can likely afford this item without borrowing, and your emergency savings stay safe."
+		if hasTarget && monthsUntilTarget > 0 {
+			r = "Low risk. You can likely afford this item by the target date by saving SLE " + money(requiredMonthlySaving) + " per month."
+		}
+		return r
+	}
 }
 
 func round(v float64) float64 { return math.Round(v*100) / 100 }

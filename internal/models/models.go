@@ -126,13 +126,26 @@ type AffordabilityRequest struct {
 }
 
 type AffordabilityResult struct {
-	ID                  string   `json:"id,omitempty"`
-	RiskLevel           string   `json:"riskLevel"`
-	Reasons             []string `json:"reasons"`
-	Recommendation      string   `json:"recommendation"`
-	EstimatedWaitMonths *int     `json:"estimatedWaitMonths"`
-	Explanation         string   `json:"explanation"`
-	TargetDate          string   `json:"targetDate,omitempty"`
+	ID                    string   `json:"id,omitempty"`
+	ItemName              string   `json:"itemName"`
+	ItemPrice             float64  `json:"itemPrice"`
+	TargetDate            string   `json:"targetDate"`
+	CalculatedAt          string   `json:"calculatedAt"`
+	MonthlyIncome         float64  `json:"monthlyIncome"`
+	MonthlyExpenses       float64  `json:"monthlyExpenses"`
+	MonthlySurplus        float64  `json:"monthlySurplus"`
+	ExpensePeriod         string   `json:"expensePeriod"`
+	CurrentSavings        float64  `json:"currentSavings"`
+	EmergencyTarget       float64  `json:"emergencyTarget"`
+	FundingGap            float64  `json:"fundingGap"`
+	MonthsUntilTarget     int      `json:"monthsUntilTarget"`
+	RequiredMonthlySaving float64  `json:"requiredMonthlySaving"`
+	ActiveGoalCommitments float64  `json:"activeGoalCommitments"`
+	AvailableAfterGoals   float64  `json:"availableAfterGoals"`
+	RiskLevel             string   `json:"riskLevel"`
+	Reasons               []string `json:"reasons"`
+	Recommendation        string   `json:"recommendation"`
+	Explanation           string   `json:"explanation"`
 }
 
 type CoachRequest struct {
