@@ -131,10 +131,10 @@ type AffordabilityResult struct {
 	ItemPrice             float64  `json:"itemPrice"`
 	TargetDate            string   `json:"targetDate"`
 	CalculatedAt          string   `json:"calculatedAt"`
+	ExpensePeriod         string   `json:"expensePeriod"`
 	MonthlyIncome         float64  `json:"monthlyIncome"`
 	MonthlyExpenses       float64  `json:"monthlyExpenses"`
 	MonthlySurplus        float64  `json:"monthlySurplus"`
-	ExpensePeriod         string   `json:"expensePeriod"`
 	CurrentSavings        float64  `json:"currentSavings"`
 	EmergencyTarget       float64  `json:"emergencyTarget"`
 	FundingGap            float64  `json:"fundingGap"`
@@ -144,6 +144,7 @@ type AffordabilityResult struct {
 	AvailableAfterGoals   float64  `json:"availableAfterGoals"`
 	RiskLevel             string   `json:"riskLevel"`
 	Reasons               []string `json:"reasons"`
+	GoalImpact            string   `json:"goalImpact"`
 	Recommendation        string   `json:"recommendation"`
 	Explanation           string   `json:"explanation"`
 }

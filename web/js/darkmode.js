@@ -10,11 +10,11 @@ function applyTheme() {
   if (t === 'dark') {
     html.classList.add('dark');
     document.body.classList.add('bg-slate-900', 'text-slate-100');
-    document.body.classList.remove('bg-slate-100', 'text-slate-900');
+    document.body.classList.remove('bg-slate-50', 'text-slate-900');
   } else {
     html.classList.remove('dark');
     document.body.classList.remove('bg-slate-900', 'text-slate-100');
-    document.body.classList.add('bg-slate-100', 'text-slate-900');
+    document.body.classList.add('bg-slate-50', 'text-slate-900');
   }
   var btn = document.getElementById('darkModeToggle');
   if (btn) btn.textContent = t === 'dark' ? '\u2600' : '\u263E';

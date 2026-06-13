@@ -39,7 +39,7 @@ function appendUserChat(text) {
   var wrapper = document.createElement('div');
   wrapper.className = 'flex justify-end';
   var div = document.createElement('div');
-  div.className = 'max-w-[80%] bg-emerald-600 text-white p-3 rounded-2xl rounded-br-sm text-sm';
+  div.className = 'coach-message-user';
   div.textContent = text;
   wrapper.appendChild(div);
   log.appendChild(wrapper);
@@ -55,7 +55,7 @@ function appendWizzChat(text, isHtml) {
   avatar.textContent = 'W';
   wrapper.appendChild(avatar);
   var bubble = document.createElement('div');
-  bubble.className = 'bg-white border rounded-2xl rounded-tl-sm p-3 text-sm max-w-[85%]';
+  bubble.className = 'coach-message-wizz';
   if (isHtml) {
     bubble.innerHTML = text;
   } else {
@@ -76,7 +76,7 @@ function showTyping() {
   avatar.textContent = 'W';
   wrapper.appendChild(avatar);
   var div = document.createElement('div');
-  div.className = 'bg-white border rounded-2xl rounded-tl-sm p-3 text-sm text-slate-400';
+  div.className = 'coach-message-wizz text-slate-400';
   div.innerHTML = '<span class="loading-spinner"></span> Wizz is thinking...';
   wrapper.appendChild(div);
   log.appendChild(wrapper);
