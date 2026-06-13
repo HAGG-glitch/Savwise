@@ -165,10 +165,6 @@ img, svg, canvas { max-width: 100%; height: auto; }
 .sidebar-desktop { width: 14rem; background: var(--color-surface); border-right: 1px solid #e5e7eb; flex-shrink: 0; padding: 1rem; display: flex; flex-direction: column; gap: .25rem; }
 .dark .sidebar-desktop { background: #1e293b; border-color: #334155; }
 
-/* ===== MORE DROPDOWN (MOBILE) ===== */
-.more-dropdown { position: absolute; bottom: calc(100% + 8px); left: 0; right: 0; background: white; border: 1px solid #e5e7eb; border-radius: var(--radius); box-shadow: var(--shadow-lg); z-index: 45; padding: .5rem; }
-.dark .more-dropdown { background: #1e293b; border-color: #334155; }
-
 /* ===== TRANSACTION CARD (MOBILE) ===== */
 .tx-card { display: flex; align-items: center; justify-content: space-between; padding: .75rem; border-radius: var(--radius-sm); border: 1px solid #e5e7eb; margin-bottom: .5rem; }
 .dark .tx-card { border-color: #334155; }
@@ -176,8 +172,7 @@ img, svg, canvas { max-width: 100%; height: auto; }
 /* ===== RESPONSIVE BREAKPOINTS ===== */
 @media (max-width: 767px) {
   .sidebar-desktop { display: none; }
-  .bottom-nav-mobile { display: flex; overflow-x: auto; gap: .25rem; padding-bottom: env(safe-area-inset-bottom, 0); }
-  .bottom-nav-mobile .tab-btn { white-space: nowrap; padding: .625rem .75rem; border-radius: var(--radius-sm); font-size: .75rem; font-weight: 700; min-height: 44px; }
+  .bottom-nav-mobile { display: none; }
   .desktop-user-name { display: none; }
   .hero-section { grid-template-columns: 1fr; }
   .hero-section h1 { font-size: 1.75rem; }
@@ -205,7 +200,6 @@ img, svg, canvas { max-width: 100%; height: auto; }
 
 @media (min-width: 768px) {
   .sidebar-desktop { display: flex; }
-  .bottom-nav-mobile { display: none; }
   .desktop-user-name { display: inline; }
   .tx-table-desktop { display: block; }
   .tx-cards-mobile { display: none; }
@@ -232,3 +226,81 @@ img, svg, canvas { max-width: 100%; height: auto; }
 
 .overflow-wrap-anywhere { overflow-wrap: anywhere; word-break: break-word; }
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0); }
+
+/* ===== MOBILE HAMBURGER HEADER ===== */
+.mobile-app-header { position: relative; }
+
+.mobile-menu-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: .75rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background .15s;
+  color: inherit;
+  flex-shrink: 0;
+}
+.mobile-menu-button:hover { background: #f0fdfa; }
+.mobile-menu-button:focus-visible { outline: 2px solid var(--color-primary-light); outline-offset: 2px; }
+.dark .mobile-menu-button:hover { background: #1e293b; }
+
+.mobile-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 8px 24px rgba(0,0,0,.1);
+  z-index: 50;
+  max-height: calc(100vh - 60px);
+  overflow-y: auto;
+  border-radius: 0 0 1rem 1rem;
+}
+.dark .mobile-menu { background: #1e293b; border-color: #334155; }
+
+.mobile-menu-links { padding: .5rem; }
+
+.mobile-nav-item {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  width: 100%;
+  padding: .75rem;
+  border-radius: var(--radius-sm);
+  font-size: .875rem;
+  font-weight: 600;
+  color: #0f172a;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all .1s;
+  text-align: left;
+  min-height: 44px;
+}
+.mobile-nav-item:hover { background: #f0fdfa; }
+.mobile-nav-item.active { background: var(--color-primary); color: white; }
+.mobile-nav-item.active:hover { background: var(--color-primary-dark); }
+.dark .mobile-nav-item { color: #e2e8f0; }
+.dark .mobile-nav-item:hover { background: #0f172a; }
+.dark .mobile-nav-item.active { background: var(--color-primary); color: white; }
+.dark .mobile-nav-item.active:hover { background: var(--color-primary-dark); }
+.mobile-nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+.mobile-nav-item.danger { color: #dc2626; }
+.dark .mobile-nav-item.danger { color: #fca5a5; }
+
+.mobile-menu-divider { height: 1px; background: #e5e7eb; margin: .5rem 0; }
+.dark .mobile-menu-divider { background: #334155; }
+
+.mobile-menu-section-label {
+  padding: .5rem .75rem .25rem;
+  font-size: .7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: #94a3b8;
+}

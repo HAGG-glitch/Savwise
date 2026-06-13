@@ -212,36 +212,6 @@ function bindGeneral() {
       location.reload();
     });
   }
-  var moreBtn = document.getElementById('moreBtn');
-  var moreDropdown = document.getElementById('moreDropdown');
-  if (moreBtn && moreDropdown) {
-    moreBtn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      moreDropdown.classList.toggle('hidden');
-    });
-    moreDropdown.addEventListener('click', function(e) {
-      var item = e.target.closest('[data-action]');
-      if (item) {
-        moreDropdown.classList.add('hidden');
-        if (item.dataset.action === 'tab') {
-          var tab = document.querySelector('.tab-btn[data-tab="' + item.dataset.tab + '"]');
-          if (tab) tab.click();
-        } else if (item.dataset.action === 'switch-user') {
-          document.getElementById('switchUserBtn').click();
-        } else if (item.dataset.action === 'logout') {
-          document.getElementById('logoutBtn').click();
-        }
-      }
-      var dtBtn = e.target.closest('#moreDarkToggle');
-      if (dtBtn) {
-        moreDropdown.classList.add('hidden');
-        var dt = document.getElementById('darkModeToggle');
-        if (dt) dt.click();
-      }
-    });
-    document.addEventListener('click', function() {
-      moreDropdown.classList.add('hidden');
-    });
-  }
+
 }
 document.addEventListener('DOMContentLoaded', bootApp);
