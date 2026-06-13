@@ -1,9 +1,12 @@
+window.__app = {};
+
 async function refreshAll() {
   const uid = getActiveUserId();
   if (!uid) return;
   try {
     const profile = await api('/api/profile');
     const u = profile.data;
+    window.__app.currentUser = u;
     var fn = document.getElementById('fullName');
     if (fn) fn.value = u.fullName || '';
     var mi = document.getElementById('monthlyIncome');
@@ -17,6 +20,7 @@ async function refreshAll() {
     var ca = document.getElementById('consentAccepted');
     if (ca) ca.checked = !!u.consentAccepted;
     updateConsentUI(u.consentAccepted, u.fullName);
+    if (window.__profile) window.__profile.updateProfileUI();
     await Promise.all([loadDashboard(), loadTransactions(), loadGoals()]);
   } catch (err) {
     var statusEl = document.getElementById('status');
@@ -199,6 +203,44 @@ function bindGeneral() {
     switchBtn.addEventListener('click', function() {
       clearActiveUser();
       location.reload();
+    });
+  }
+  var logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', function() {
+      clearActiveUser();
+      location.reload();
+    });
+  }
+  var moreBtn = document.getElementById('moreBtn');
+  var moreDropdown = document.getElementById('moreDropdown');
+  if (moreBtn && moreDropdown) {
+    moreBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      moreDropdown.classList.toggle('hidden');
+    });
+    moreDropdown.addEventListener('click', function(e) {
+      var item = e.target.closest('[data-action]');
+      if (item) {
+        moreDropdown.classList.add('hidden');
+        if (item.dataset.action === 'tab') {
+          var tab = document.querySelector('.tab-btn[data-tab="' + item.dataset.tab + '"]');
+          if (tab) tab.click();
+        } else if (item.dataset.action === 'switch-user') {
+          document.getElementById('switchUserBtn').click();
+        } else if (item.dataset.action === 'logout') {
+          document.getElementById('logoutBtn').click();
+        }
+      }
+      var dtBtn = e.target.closest('#moreDarkToggle');
+      if (dtBtn) {
+        moreDropdown.classList.add('hidden');
+        var dt = document.getElementById('darkModeToggle');
+        if (dt) dt.click();
+      }
+    });
+    document.addEventListener('click', function() {
+      moreDropdown.classList.add('hidden');
     });
   }
 }
